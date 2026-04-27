@@ -92,6 +92,7 @@
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -150,7 +151,13 @@
     const qu = new THREE.Group();
     scene.add(qu);
 
+    function smoothGeometry(geometry) {
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
     function addMesh(geometry, material, position, scale = [1, 1, 1], rotation = [0, 0, 0]) {
+      smoothGeometry(geometry);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...position);
       mesh.scale.set(...scale);
@@ -171,7 +178,7 @@
         const length = direction.length();
         const radius = THREE.MathUtils.lerp(radiusStart, radiusEnd, i / Math.max(points.length - 2, 1));
         const segment = new THREE.Mesh(
-          new THREE.CylinderGeometry(radius * 0.72, radius, length, 7),
+          smoothGeometry(new THREE.CylinderGeometry(radius * 0.72, radius, length, 16, 4)),
           material
         );
         segment.position.copy(start.clone().add(end).multiplyScalar(0.5));
@@ -180,18 +187,31 @@
         segment.receiveShadow = true;
         group.add(segment);
       }
+      points.forEach((point, index) => {
+        const t = index / Math.max(points.length - 1, 1);
+        const radius = THREE.MathUtils.lerp(radiusStart, radiusEnd, t) * 0.86;
+        const joint = new THREE.Mesh(
+          smoothGeometry(new THREE.SphereGeometry(radius, 16, 10)),
+          material
+        );
+        joint.name = `${name}-soft-joint-${index + 1}`;
+        joint.position.set(...point);
+        joint.castShadow = true;
+        joint.receiveShadow = true;
+        group.add(joint);
+      });
       qu.add(group);
       return group;
     }
 
     const headShape = new THREE.Shape();
-    headShape.moveTo(-0.62, 0.28);
-    headShape.lineTo(0.62, 0.28);
-    headShape.lineTo(0.34, -0.34);
-    headShape.lineTo(-0.34, -0.34);
-    headShape.lineTo(-0.62, 0.28);
+    headShape.moveTo(-0.58, 0.26);
+    headShape.quadraticCurveTo(0, 0.36, 0.58, 0.26);
+    headShape.quadraticCurveTo(0.48, -0.08, 0.32, -0.34);
+    headShape.quadraticCurveTo(0, -0.44, -0.32, -0.34);
+    headShape.quadraticCurveTo(-0.48, -0.08, -0.58, 0.26);
     const head = addMesh(
-      new THREE.ExtrudeGeometry(headShape, { depth: 0.1, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.02 }),
+      new THREE.ExtrudeGeometry(headShape, { depth: 0.14, bevelEnabled: true, bevelSize: 0.035, bevelThickness: 0.035, bevelSegments: 5 }),
       bodyMaterial,
       [-0.05, 3.42, 0.38],
       [1, 1.05, 1],
@@ -199,10 +219,10 @@
     );
     head.name = "inverted-trapezoid-head";
 
-    addMesh(new THREE.CylinderGeometry(0.055, 0.07, 0.26, 8), armorMaterial, [0, 3.72, 0.46], [1, 1, 1], [Math.PI / 2, 0, 0]).name = "forehead-orifice";
+    addMesh(new THREE.CylinderGeometry(0.055, 0.07, 0.26, 18, 2), armorMaterial, [0, 3.72, 0.46], [1, 1, 1], [Math.PI / 2, 0, 0]).name = "forehead-orifice";
     for (let i = 0; i < 8; i++) {
       addMesh(
-        new THREE.SphereGeometry(0.016 + (i % 3) * 0.004, 8, 6),
+        new THREE.SphereGeometry(0.016 + (i % 3) * 0.004, 14, 10),
         inkMaterial,
         [-0.34 + i * 0.1, 3.5 + Math.sin(i * 1.7) * 0.09, 0.455],
         [1.35, 0.72, 0.35]
@@ -210,12 +230,12 @@
     }
     taperedLimb("left-upper-eye-stalk", [[-0.42, 3.58, 0.42], [-0.82, 3.6, 0.5], [-1.16, 3.54, 0.48]], 0.045, 0.022, appendageMaterial);
     taperedLimb("right-upper-eye-stalk", [[0.42, 3.58, 0.42], [0.82, 3.6, 0.5], [1.16, 3.54, 0.48]], 0.045, 0.022, appendageMaterial);
-    addMesh(new THREE.SphereGeometry(0.09, 12, 8), glowMaterial, [-1.22, 3.52, 0.48], [1.3, 0.85, 0.9]).name = "left-compound-eye";
-    addMesh(new THREE.SphereGeometry(0.09, 12, 8), glowMaterial, [1.22, 3.52, 0.48], [1.3, 0.85, 0.9]).name = "right-compound-eye";
+    addMesh(new THREE.SphereGeometry(0.09, 24, 16), glowMaterial, [-1.22, 3.52, 0.48], [1.3, 0.85, 0.9]).name = "left-compound-eye";
+    addMesh(new THREE.SphereGeometry(0.09, 24, 16), glowMaterial, [1.22, 3.52, 0.48], [1.3, 0.85, 0.9]).name = "right-compound-eye";
     taperedLimb("left-lower-eye-stalk", [[-0.28, 3.34, 0.45], [-0.58, 3.22, 0.5], [-0.84, 3.18, 0.46]], 0.03, 0.016, appendageMaterial);
     taperedLimb("right-lower-eye-stalk", [[0.28, 3.34, 0.45], [0.58, 3.22, 0.5], [0.84, 3.18, 0.46]], 0.03, 0.016, appendageMaterial);
-    addMesh(new THREE.SphereGeometry(0.052, 10, 8), glowMaterial, [-0.9, 3.17, 0.46], [1.15, 0.8, 0.8]).name = "left-lower-eye";
-    addMesh(new THREE.SphereGeometry(0.052, 10, 8), glowMaterial, [0.9, 3.17, 0.46], [1.15, 0.8, 0.8]).name = "right-lower-eye";
+    addMesh(new THREE.SphereGeometry(0.052, 18, 12), glowMaterial, [-0.9, 3.17, 0.46], [1.15, 0.8, 0.8]).name = "left-lower-eye";
+    addMesh(new THREE.SphereGeometry(0.052, 18, 12), glowMaterial, [0.9, 3.17, 0.46], [1.15, 0.8, 0.8]).name = "right-lower-eye";
 
     taperedLimb("lower-mandible-left", [[-0.18, 3.1, 0.47], [-0.48, 2.84, 0.54], [-0.62, 2.52, 0.42]], 0.04, 0.018, armorMaterial);
     taperedLimb("lower-mandible-right", [[0.18, 3.1, 0.47], [0.48, 2.84, 0.54], [0.62, 2.52, 0.42]], 0.04, 0.018, armorMaterial);
@@ -237,14 +257,14 @@
     );
     mandibleMembrane.name = "mandible-membrane";
 
-    const thorax = addMesh(new THREE.ConeGeometry(0.7, 1.2, 3), bodyMaterial, [0, 2.45, 0.02], [0.78, 1.05, 0.52], [Math.PI, Math.PI / 3, 0]);
-    thorax.name = "inverted-triangle-body";
-    const abdomen = addMesh(new THREE.CapsuleGeometry(0.23, 0.72, 5, 8), armorMaterial, [0, 1.8, -0.04], [0.72, 1, 0.45]);
+    const thorax = addMesh(new THREE.ConeGeometry(0.64, 1.22, 32, 8), bodyMaterial, [0, 2.45, 0.02], [0.78, 1.05, 0.52], [Math.PI, 0, 0]);
+    thorax.name = "smooth-inverted-triangle-body";
+    const abdomen = addMesh(new THREE.CapsuleGeometry(0.23, 0.72, 10, 16), armorMaterial, [0, 1.8, -0.04], [0.72, 1, 0.45]);
     abdomen.name = "small-lower-abdomen";
 
     for (let i = 0; i < 7; i++) {
       addMesh(
-        new THREE.SphereGeometry(0.022 + i * 0.002, 8, 6),
+        new THREE.SphereGeometry(0.022 + i * 0.002, 14, 10),
         inkMaterial,
         [(i % 2 ? 0.18 : -0.18), 2.86 - i * 0.17, 0.31],
         [1.4, 0.75, 0.4]
@@ -253,7 +273,7 @@
 
     for (let i = 0; i < 5; i++) {
       addMesh(
-        new THREE.TorusGeometry(0.21 - i * 0.012, 0.012, 5, 28),
+        new THREE.TorusGeometry(0.21 - i * 0.012, 0.012, 12, 60),
         armorMaterial,
         [0, 2.08 - i * 0.16, -0.05],
         [1, 0.48, 0.52],
@@ -261,18 +281,18 @@
       ).name = `body-segment-${i + 1}`;
     }
 
-    taperedLimb("long-prehensile-tail", [[0, 1.38, -0.06], [0.06, 0.76, -0.1], [-0.05, 0.1, -0.14], [0.04, -0.58, -0.08], [0, -1.22, 0.02]], 0.105, 0.018, appendageMaterial);
+    taperedLimb("long-prehensile-tail", [[0, 1.38, -0.06], [0.04, 1.02, -0.08], [0.06, 0.62, -0.1], [0, 0.18, -0.14], [-0.05, -0.26, -0.12], [0.02, -0.74, -0.05], [0, -1.22, 0.02]], 0.105, 0.018, appendageMaterial);
 
-    taperedLimb("left-forelimb", [[-0.3, 2.62, 0.02], [-0.74, 2.12, 0.1], [-1.02, 1.44, 0.04], [-1.28, 0.92, 0.16]], 0.07, 0.02, appendageMaterial);
-    taperedLimb("right-forelimb", [[0.3, 2.62, 0.02], [0.74, 2.12, 0.1], [1.02, 1.44, 0.04], [1.28, 0.92, 0.16]], 0.07, 0.02, appendageMaterial);
-    taperedLimb("left-hindlimb", [[-0.2, 1.82, -0.05], [-0.58, 1.18, -0.14], [-0.72, 0.48, -0.1]], 0.075, 0.024, armorMaterial);
-    taperedLimb("right-hindlimb", [[0.2, 1.82, -0.05], [0.58, 1.18, -0.14], [0.72, 0.48, -0.1]], 0.075, 0.024, armorMaterial);
+    taperedLimb("left-forelimb", [[-0.3, 2.62, 0.02], [-0.55, 2.34, 0.08], [-0.78, 1.96, 0.1], [-0.98, 1.48, 0.05], [-1.28, 0.92, 0.16]], 0.062, 0.018, appendageMaterial);
+    taperedLimb("right-forelimb", [[0.3, 2.62, 0.02], [0.55, 2.34, 0.08], [0.78, 1.96, 0.1], [0.98, 1.48, 0.05], [1.28, 0.92, 0.16]], 0.062, 0.018, appendageMaterial);
+    taperedLimb("left-hindlimb", [[-0.2, 1.82, -0.05], [-0.42, 1.46, -0.12], [-0.58, 1.02, -0.14], [-0.72, 0.48, -0.1]], 0.068, 0.022, armorMaterial);
+    taperedLimb("right-hindlimb", [[0.2, 1.82, -0.05], [0.42, 1.46, -0.12], [0.58, 1.02, -0.14], [0.72, 0.48, -0.1]], 0.068, 0.022, armorMaterial);
 
     const wingShape = new THREE.Shape();
     wingShape.moveTo(0, 0);
-    wingShape.bezierCurveTo(0.28, 0.56, 0.52, 1.72, 0.28, 3.08);
-    wingShape.bezierCurveTo(0.08, 2.22, -0.18, 0.88, 0, 0);
-    const wingGeometry = new THREE.ShapeGeometry(wingShape, 36);
+    wingShape.bezierCurveTo(0.22, 0.46, 0.5, 1.65, 0.3, 3.16);
+    wingShape.bezierCurveTo(0.12, 2.46, -0.2, 1.05, 0, 0);
+    const wingGeometry = new THREE.ShapeGeometry(wingShape, 96);
 
     const wings = [];
     function addWing(name, side, yOffset, scale, rotationY, rotationZ) {
@@ -285,14 +305,16 @@
       qu.add(wing);
       wings.push(wing);
 
-      const muscle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 0.52, 7), armorMaterial);
+      const muscle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 0.52, 16, 3), armorMaterial);
+      muscle.geometry.computeVertexNormals();
       muscle.name = `${name}-basal-muscle`;
       muscle.position.set(0.18 * side, yOffset + 0.04, -0.16);
       muscle.rotation.set(1.28, 0.22 * side, 0.2 * side);
       qu.add(muscle);
 
       for (let i = 0; i < 3; i++) {
-        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.011, 1.72 + i * 0.22, 5), armorMaterial);
+        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.011, 1.72 + i * 0.22, 12, 3), armorMaterial);
+        vein.geometry.computeVertexNormals();
         vein.name = `${name}-wing-vein-${i + 1}`;
         vein.position.set((0.09 + i * 0.045) * side, yOffset + 0.74 + i * 0.36, -0.145);
         vein.rotation.set(1.1, 0.17 * side, (0.12 + i * 0.1) * side);
