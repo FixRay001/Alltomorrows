@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Стилизованная 3D модель Qu</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #070711;
+      color: #f1edf8;
+      font-family: Arial, sans-serif;
+    }
+
+    #scene {
+      height: 100%;
+      width: 100%;
+    }
+
+    .panel {
+      position: fixed;
+      left: 20px;
+      top: 20px;
+      max-width: 360px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      background: rgba(10, 9, 22, 0.72);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      letter-spacing: 0.04em;
+    }
+
+    p {
+      margin: 0;
+      color: #d1c8dc;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .hint {
+      margin-top: 10px;
+      color: #a994c8;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div id="scene"></div>
+  <section class="panel">
+    <h1>Фан-модель Qu</h1>
+    <p>
+      Это не точная копия, а стилизованный low-poly прототип: высокий чужой силуэт,
+      хитиновая броня, длинные конечности, крылья и биомеханические детали.
+    </p>
+    <p class="hint">Мышь: вращать. Колесо: приблизить. Правая кнопка: двигать камеру.</p>
+  </section>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    const container = document.querySelector("#scene");
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x070711);
+    scene.fog = new THREE.Fog(0x070711, 8, 24);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(4.8, 3.2, 8.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.45, 0);
+
+    const bodyMaterial = new THREE.MeshStandardMaterial({
+      color: 0x6c4a82,
+      roughness: 0.58,
+      metalness: 0.12
+    });
+    const armorMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1a1427,
+      roughness: 0.5,
+      metalness: 0.25
+    });
+    const wingMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2a1d40,
+      roughness: 0.7,
+      metalness: 0.05,
+      transparent: true,
+      opacity: 0.72,
+      side: THREE.DoubleSide
+    });
+    const glowMaterial = new THREE.MeshStandardMaterial({
+      color: 0xbba0ff,
+      emissive: 0x7e42ff,
+      emissiveIntensity: 1.8,
+      roughness: 0.28
+    });
+
+    const qu = new THREE.Group();
+    scene.add(qu);
+
+    function addMesh(geometry, material, position, scale = [1, 1, 1], rotation = [0, 0, 0]) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(...position);
+      mesh.scale.set(...scale);
+      mesh.rotation.set(...rotation);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      qu.add(mesh);
+      return mesh;
+    }
+
+    function taperedLimb(name, points, radiusStart, radiusEnd, material) {
+      const group = new THREE.Group();
+      group.name = name;
+      for (let i = 0; i < points.length - 1; i++) {
+        const start = new THREE.Vector3(...points[i]);
+        const end = new THREE.Vector3(...points[i + 1]);
+        const direction = end.clone().sub(start);
+        const length = direction.length();
+        const radius = THREE.MathUtils.lerp(radiusStart, radiusEnd, i / Math.max(points.length - 2, 1));
+        const segment = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius * 0.72, radius, length, 7),
+          material
+        );
+        segment.position.copy(start.clone().add(end).multiplyScalar(0.5));
+        segment.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+        segment.castShadow = true;
+        segment.receiveShadow = true;
+        group.add(segment);
+      }
+      qu.add(group);
+      return group;
+    }
+
+    addMesh(new THREE.CapsuleGeometry(0.55, 1.8, 7, 12), bodyMaterial, [0, 1.45, 0], [0.75, 1.2, 0.48]);
+    addMesh(new THREE.ConeGeometry(0.64, 1.35, 7), armorMaterial, [0, 2.5, -0.02], [1, 1, 0.82], [Math.PI, 0, 0]);
+    addMesh(new THREE.IcosahedronGeometry(0.58, 1), bodyMaterial, [0, 3.35, 0], [0.78, 1.05, 0.55]);
+    addMesh(new THREE.ConeGeometry(0.18, 0.85, 6), armorMaterial, [-0.34, 3.92, 0], [0.8, 1, 0.8], [-0.25, 0, 0.3]);
+    addMesh(new THREE.ConeGeometry(0.18, 0.85, 6), armorMaterial, [0.34, 3.92, 0], [0.8, 1, 0.8], [-0.25, 0, -0.3]);
+
+    addMesh(new THREE.SphereGeometry(0.085, 16, 10), glowMaterial, [-0.19, 3.42, 0.47], [1.2, 0.75, 0.6]);
+    addMesh(new THREE.SphereGeometry(0.085, 16, 10), glowMaterial, [0.19, 3.42, 0.47], [1.2, 0.75, 0.6]);
+    addMesh(new THREE.TorusGeometry(0.34, 0.035, 8, 42), armorMaterial, [0, 3.27, 0.28], [1, 0.5, 0.35], [Math.PI / 2, 0, 0]);
+
+    for (let i = 0; i < 7; i++) {
+      addMesh(
+        new THREE.ConeGeometry(0.1 - i * 0.006, 0.42, 5),
+        armorMaterial,
+        [0, 2.62 - i * 0.26, -0.48],
+        [1, 1, 0.65],
+        [Math.PI / 2, 0, 0]
+      );
+    }
+
+    taperedLimb("left-arm", [[-0.44, 2.28, 0], [-1.15, 1.9, 0.12], [-1.65, 1.2, 0.18], [-1.92, 0.65, 0.1]], 0.13, 0.055, bodyMaterial);
+    taperedLimb("right-arm", [[0.44, 2.28, 0], [1.15, 1.9, 0.12], [1.65, 1.2, 0.18], [1.92, 0.65, 0.1]], 0.13, 0.055, bodyMaterial);
+    taperedLimb("left-leg", [[-0.25, 0.72, 0], [-0.62, 0.06, 0.08], [-0.92, -0.68, 0.15]], 0.16, 0.075, armorMaterial);
+    taperedLimb("right-leg", [[0.25, 0.72, 0], [0.62, 0.06, 0.08], [0.92, -0.68, 0.15]], 0.16, 0.075, armorMaterial);
+
+    addMesh(new THREE.ConeGeometry(0.11, 0.42, 5), armorMaterial, [-1.98, 0.45, 0.1], [0.7, 1, 0.7], [-0.25, 0, 0.2]);
+    addMesh(new THREE.ConeGeometry(0.11, 0.42, 5), armorMaterial, [1.98, 0.45, 0.1], [0.7, 1, 0.7], [-0.25, 0, -0.2]);
+
+    const wingShape = new THREE.Shape();
+    wingShape.moveTo(0, 0);
+    wingShape.bezierCurveTo(0.95, 0.55, 1.55, 1.32, 1.78, 2.18);
+    wingShape.bezierCurveTo(1.15, 1.88, 0.48, 1.25, 0, 0);
+    const wingGeometry = new THREE.ShapeGeometry(wingShape, 24);
+
+    const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+    leftWing.position.set(-0.34, 1.74, -0.26);
+    leftWing.rotation.set(0.18, -0.65, 0.3);
+    leftWing.scale.set(-1.15, 1.18, 1);
+    leftWing.castShadow = true;
+    qu.add(leftWing);
+
+    const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+    rightWing.position.set(0.34, 1.74, -0.26);
+    rightWing.rotation.set(0.18, 0.65, -0.3);
+    rightWing.scale.set(1.15, 1.18, 1);
+    rightWing.castShadow = true;
+    qu.add(rightWing);
+
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(1.02, 0.018, 8, 80), glowMaterial);
+    halo.position.set(0, 3.3, -0.18);
+    halo.rotation.set(Math.PI / 2, 0, 0);
+    qu.add(halo);
+
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(5.2, 72),
+      new THREE.MeshStandardMaterial({ color: 0x14101f, roughness: 0.85 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.91;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x111018, 2.4));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
+    keyLight.position.set(3.5, 5.6, 4.2);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.PointLight(0x7a4dff, 18, 8);
+    rimLight.position.set(-2.8, 2.8, -2.4);
+    scene.add(rimLight);
+
+    for (let i = 0; i < 110; i++) {
+      const star = new THREE.Mesh(new THREE.SphereGeometry(0.01 + Math.random() * 0.018, 6, 6), glowMaterial);
+      star.position.set(
+        (Math.random() - 0.5) * 18,
+        Math.random() * 9,
+        -5 - Math.random() * 8
+      );
+      scene.add(star);
+    }
+
+    function resize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.addEventListener("resize", resize);
+
+    const clock = new THREE.Clock();
+    function animate() {
+      const time = clock.getElapsedTime();
+      qu.rotation.y = Math.sin(time * 0.34) * 0.12;
+      qu.position.y = Math.sin(time * 1.4) * 0.035;
+      halo.rotation.z = time * 0.28;
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
