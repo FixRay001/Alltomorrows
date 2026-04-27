@@ -6,8 +6,13 @@
       "name": "Run Part I Beta Menu",
       "request": "launch",
       "mainClass": "com.alltomorrows.menu.MainMenuApp",
-      "projectName": "Alltomorrows",
       "cwd": "${workspaceFolder}",
+      "classPaths": [
+        "${workspaceFolder}/build/classes"
+      ],
+      "sourcePaths": [
+        "${workspaceFolder}/src/main/java"
+      ],
       "preLaunchTask": "Build Part I Beta Jar"
     },
     {
@@ -15,9 +20,14 @@
       "name": "Smoke Test Part I Beta Menu",
       "request": "launch",
       "mainClass": "com.alltomorrows.menu.MainMenuApp",
-      "projectName": "Alltomorrows",
       "cwd": "${workspaceFolder}",
       "args": "--smoke-test",
+      "classPaths": [
+        "${workspaceFolder}/build/classes"
+      ],
+      "sourcePaths": [
+        "${workspaceFolder}/src/main/java"
+      ],
       "preLaunchTask": "Build Part I Beta Jar"
     }
   ]

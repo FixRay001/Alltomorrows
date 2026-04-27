@@ -30,6 +30,7 @@ java -jar build/alltomorrows-part1-beta.jar --smoke-test
 4. Выберите **Run Part I Beta Menu**.
 
 Для проверки без графического окна можно выбрать **Smoke Test Part I Beta Menu**.
+Эти конфигурации запускают собранный `.jar`, поэтому проекту не нужен Maven или Gradle.
 
 ## 3D model viewer
 

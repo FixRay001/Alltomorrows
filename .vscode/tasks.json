@@ -27,6 +27,18 @@
         "panel": "shared",
         "clear": true
       }
+    },
+    {
+      "label": "Smoke Test Part I Beta Jar",
+      "type": "shell",
+      "command": "java -jar build/alltomorrows-part1-beta.jar --smoke-test",
+      "dependsOn": "Build Part I Beta Jar",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
     }
   ]
 }
