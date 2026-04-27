@@ -32,7 +32,6 @@ import javax.swing.WindowConstants;
 
 public final class MainMenuApp {
     private static final Color PAPER = new Color(222, 203, 163);
-    private static final Color INK = new Color(31, 25, 18);
     private static final Color PANEL = new Color(23, 20, 18, 218);
     private static final Color ACCENT = new Color(205, 146, 58);
     private static final Color MUTED = new Color(176, 158, 125);
