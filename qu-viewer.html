@@ -10,8 +10,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: #070711;
-      color: #f1edf8;
+      background: #d9c6a4;
+      color: #2a2118;
       font-family: Arial, sans-serif;
     }
 
@@ -28,7 +28,7 @@
       padding: 16px 18px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 16px;
-      background: rgba(10, 9, 22, 0.72);
+      background: rgba(238, 224, 193, 0.78);
       box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
       backdrop-filter: blur(10px);
     }
@@ -41,14 +41,14 @@
 
     p {
       margin: 0;
-      color: #d1c8dc;
+      color: #3f3326;
       font-size: 14px;
       line-height: 1.45;
     }
 
     .hint {
       margin-top: 10px;
-      color: #a994c8;
+      color: #6e583f;
       font-size: 13px;
     }
   </style>
@@ -58,10 +58,9 @@
   <section class="panel">
     <h1>Фан-модель Qu</h1>
     <p>
-      Это стилизованный low-poly прототип по оригинальной иллюстрации
-      “Qu triumphant in the fall of Man”: трапециевидная голова, глазные
-      стебли, мандибулы, треугольное тело, длинный хвост и четыре узких
-      листовидных крыла.
+      Это более точная fan-made 3D интерпретация по оригинальной иллюстрации
+      “Qu triumphant in the fall of Man”: сепийная палитра, тёмный хитин,
+      янтарные глаза, мембраны, длинный хвост и четыре узких листовидных крыла.
     </p>
     <p class="hint">Мышь: вращать. Колесо: приблизить. Правая кнопка: двигать камеру.</p>
   </section>
@@ -80,8 +79,8 @@
 
     const container = document.querySelector("#scene");
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070711);
-    scene.fog = new THREE.Fog(0x070711, 8, 24);
+    scene.background = new THREE.Color(0xd9c6a4);
+    scene.fog = new THREE.Fog(0xd9c6a4, 9, 26);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(4.8, 3.2, 8.2);
@@ -89,6 +88,9 @@
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     renderer.shadowMap.enabled = true;
     container.appendChild(renderer.domElement);
 
@@ -97,33 +99,52 @@
     controls.target.set(0, 1.45, 0);
 
     const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: 0x6c4a82,
-      roughness: 0.58,
-      metalness: 0.12
+      color: 0x7b6748,
+      roughness: 0.88,
+      metalness: 0.02
     });
     const armorMaterial = new THREE.MeshStandardMaterial({
-      color: 0x1a1427,
-      roughness: 0.5,
-      metalness: 0.25
+      color: 0x2f271d,
+      roughness: 0.82,
+      metalness: 0.04
     });
     const wingMaterial = new THREE.MeshStandardMaterial({
-      color: 0x2a1d40,
-      roughness: 0.7,
+      color: 0xb7a77d,
+      roughness: 0.76,
       metalness: 0.05,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.46,
       side: THREE.DoubleSide
     });
     const glowMaterial = new THREE.MeshStandardMaterial({
-      color: 0xbba0ff,
-      emissive: 0x7e42ff,
-      emissiveIntensity: 1.8,
-      roughness: 0.28
+      color: 0xffd98a,
+      emissive: 0xc26a1a,
+      emissiveIntensity: 1.25,
+      roughness: 0.36
     });
     const appendageMaterial = new THREE.MeshStandardMaterial({
-      color: 0x4f365f,
-      roughness: 0.64,
-      metalness: 0.08
+      color: 0x5a4832,
+      roughness: 0.86,
+      metalness: 0.02
+    });
+    const membraneMaterial = new THREE.MeshStandardMaterial({
+      color: 0x9c875f,
+      roughness: 0.8,
+      transparent: true,
+      opacity: 0.42,
+      side: THREE.DoubleSide
+    });
+    const inkMaterial = new THREE.MeshStandardMaterial({
+      color: 0x211a13,
+      roughness: 0.9,
+      metalness: 0
+    });
+    const sepiaWashMaterial = new THREE.MeshStandardMaterial({
+      color: 0xe6d3aa,
+      roughness: 1,
+      transparent: true,
+      opacity: 0.18,
+      side: THREE.DoubleSide
     });
 
     const qu = new THREE.Group();
@@ -179,6 +200,14 @@
     head.name = "inverted-trapezoid-head";
 
     addMesh(new THREE.CylinderGeometry(0.055, 0.07, 0.26, 8), armorMaterial, [0, 3.72, 0.46], [1, 1, 1], [Math.PI / 2, 0, 0]).name = "forehead-orifice";
+    for (let i = 0; i < 8; i++) {
+      addMesh(
+        new THREE.SphereGeometry(0.016 + (i % 3) * 0.004, 8, 6),
+        inkMaterial,
+        [-0.34 + i * 0.1, 3.5 + Math.sin(i * 1.7) * 0.09, 0.455],
+        [1.35, 0.72, 0.35]
+      ).name = `head-mottle-${i + 1}`;
+    }
     taperedLimb("left-upper-eye-stalk", [[-0.42, 3.58, 0.42], [-0.82, 3.6, 0.5], [-1.16, 3.54, 0.48]], 0.045, 0.022, appendageMaterial);
     taperedLimb("right-upper-eye-stalk", [[0.42, 3.58, 0.42], [0.82, 3.6, 0.5], [1.16, 3.54, 0.48]], 0.045, 0.022, appendageMaterial);
     addMesh(new THREE.SphereGeometry(0.09, 12, 8), glowMaterial, [-1.22, 3.52, 0.48], [1.3, 0.85, 0.9]).name = "left-compound-eye";
@@ -193,10 +222,34 @@
     taperedLimb("upper-mandible-left", [[-0.08, 3.16, 0.5], [-0.26, 2.96, 0.56], [-0.35, 2.78, 0.5]], 0.026, 0.014, armorMaterial);
     taperedLimb("upper-mandible-right", [[0.08, 3.16, 0.5], [0.26, 2.96, 0.56], [0.35, 2.78, 0.5]], 0.026, 0.014, armorMaterial);
 
+    const mandibleMembraneShape = new THREE.Shape();
+    mandibleMembraneShape.moveTo(-0.22, 0);
+    mandibleMembraneShape.lineTo(0.22, 0);
+    mandibleMembraneShape.lineTo(0.08, -0.42);
+    mandibleMembraneShape.lineTo(-0.08, -0.42);
+    mandibleMembraneShape.lineTo(-0.22, 0);
+    const mandibleMembrane = addMesh(
+      new THREE.ShapeGeometry(mandibleMembraneShape),
+      membraneMaterial,
+      [0, 3.02, 0.515],
+      [1, 1, 1],
+      [0.06, 0, 0]
+    );
+    mandibleMembrane.name = "mandible-membrane";
+
     const thorax = addMesh(new THREE.ConeGeometry(0.7, 1.2, 3), bodyMaterial, [0, 2.45, 0.02], [0.78, 1.05, 0.52], [Math.PI, Math.PI / 3, 0]);
     thorax.name = "inverted-triangle-body";
     const abdomen = addMesh(new THREE.CapsuleGeometry(0.23, 0.72, 5, 8), armorMaterial, [0, 1.8, -0.04], [0.72, 1, 0.45]);
     abdomen.name = "small-lower-abdomen";
+
+    for (let i = 0; i < 7; i++) {
+      addMesh(
+        new THREE.SphereGeometry(0.022 + i * 0.002, 8, 6),
+        inkMaterial,
+        [(i % 2 ? 0.18 : -0.18), 2.86 - i * 0.17, 0.31],
+        [1.4, 0.75, 0.4]
+      ).name = `dark-body-speckle-${i + 1}`;
+    }
 
     for (let i = 0; i < 5; i++) {
       addMesh(
@@ -237,6 +290,14 @@
       muscle.position.set(0.18 * side, yOffset + 0.04, -0.16);
       muscle.rotation.set(1.28, 0.22 * side, 0.2 * side);
       qu.add(muscle);
+
+      for (let i = 0; i < 3; i++) {
+        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.011, 1.72 + i * 0.22, 5), armorMaterial);
+        vein.name = `${name}-wing-vein-${i + 1}`;
+        vein.position.set((0.09 + i * 0.045) * side, yOffset + 0.74 + i * 0.36, -0.145);
+        vein.rotation.set(1.1, 0.17 * side, (0.12 + i * 0.1) * side);
+        qu.add(vein);
+      }
     }
 
     addWing("left-upper-leaf-wing", -1, 2.02, 1.03, 0.5, 0.36);
@@ -246,26 +307,32 @@
 
     const ground = new THREE.Mesh(
       new THREE.CircleGeometry(5.2, 72),
-      new THREE.MeshStandardMaterial({ color: 0x14101f, roughness: 0.85 })
+      new THREE.MeshStandardMaterial({ color: 0xc9b58c, roughness: 0.9 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.91;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x111018, 2.4));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
+    const sepiaWash = new THREE.Mesh(new THREE.CircleGeometry(5.05, 72), sepiaWashMaterial);
+    sepiaWash.name = "sepia-wash-overlay";
+    sepiaWash.rotation.x = -Math.PI / 2;
+    sepiaWash.position.y = -0.905;
+    scene.add(sepiaWash);
+
+    scene.add(new THREE.HemisphereLight(0xf7e6c1, 0x5f4d35, 2.1));
+    const keyLight = new THREE.DirectionalLight(0xfff0cb, 2.55);
     keyLight.position.set(3.5, 5.6, 4.2);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(2048, 2048);
     scene.add(keyLight);
 
-    const rimLight = new THREE.PointLight(0x7a4dff, 18, 8);
+    const rimLight = new THREE.PointLight(0x9b6f37, 7, 8);
     rimLight.position.set(-2.8, 2.8, -2.4);
     scene.add(rimLight);
 
     for (let i = 0; i < 110; i++) {
-      const star = new THREE.Mesh(new THREE.SphereGeometry(0.01 + Math.random() * 0.018, 6, 6), glowMaterial);
+      const star = new THREE.Mesh(new THREE.SphereGeometry(0.006 + Math.random() * 0.012, 6, 6), inkMaterial);
       star.position.set(
         (Math.random() - 0.5) * 18,
         Math.random() * 9,
