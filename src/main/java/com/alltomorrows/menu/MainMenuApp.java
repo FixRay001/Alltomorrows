@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -44,7 +45,20 @@ public final class MainMenuApp {
             System.out.println("All Tomorrows Part I Beta menu smoke test passed");
             return;
         }
-        SwingUtilities.invokeLater(MainMenuApp::show);
+        if (GraphicsEnvironment.isHeadless()) {
+            System.err.println("Cannot open the desktop menu because no graphical display is available.");
+            System.err.println("Run this on your computer's local desktop, or use --smoke-test in a remote terminal.");
+            System.exit(1);
+        }
+        SwingUtilities.invokeLater(() -> {
+            try {
+                show();
+            } catch (RuntimeException error) {
+                System.err.println("Failed to open the desktop menu: " + error.getMessage());
+                error.printStackTrace(System.err);
+                System.exit(1);
+            }
+        });
     }
 
     private static void show() {

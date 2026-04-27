@@ -15,6 +15,12 @@ java -jar build/alltomorrows-part1-beta.jar
 ```
 
 Это скачиваемый desktop-прототип на Java, не web-игра.
+Для запуска окна нужна обычная desktop-среда с графическим дисплеем.
+Если вы работаете в удалённом терминале без GUI, используйте проверку:
+
+```bash
+java -jar build/alltomorrows-part1-beta.jar --smoke-test
+```
 
 ### Запуск из VS Code
 
