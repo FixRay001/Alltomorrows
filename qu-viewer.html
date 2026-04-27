@@ -58,8 +58,9 @@
   <section class="panel">
     <h1>Фан-модель Qu</h1>
     <p>
-      Это не точная копия, а стилизованный low-poly прототип: высокий чужой силуэт,
-      хитиновая броня, длинные конечности, крылья и биомеханические детали.
+      Это не точная копия, а стилизованный low-poly прототип, ближе к знакомому
+      образу Qu: вытянутая инсектоидная фигура, большие крылья, тонкие лапы и
+      клювовидная голова.
     </p>
     <p class="hint">Мышь: вращать. Колесо: приблизить. Правая кнопка: двигать камеру.</p>
   </section>
@@ -118,6 +119,11 @@
       emissiveIntensity: 1.8,
       roughness: 0.28
     });
+    const appendageMaterial = new THREE.MeshStandardMaterial({
+      color: 0x4f365f,
+      roughness: 0.64,
+      metalness: 0.08
+    });
 
     const qu = new THREE.Group();
     scene.add(qu);
@@ -156,58 +162,74 @@
       return group;
     }
 
-    addMesh(new THREE.CapsuleGeometry(0.55, 1.8, 7, 12), bodyMaterial, [0, 1.45, 0], [0.75, 1.2, 0.48]);
-    addMesh(new THREE.ConeGeometry(0.64, 1.35, 7), armorMaterial, [0, 2.5, -0.02], [1, 1, 0.82], [Math.PI, 0, 0]);
-    addMesh(new THREE.IcosahedronGeometry(0.58, 1), bodyMaterial, [0, 3.35, 0], [0.78, 1.05, 0.55]);
-    addMesh(new THREE.ConeGeometry(0.18, 0.85, 6), armorMaterial, [-0.34, 3.92, 0], [0.8, 1, 0.8], [-0.25, 0, 0.3]);
-    addMesh(new THREE.ConeGeometry(0.18, 0.85, 6), armorMaterial, [0.34, 3.92, 0], [0.8, 1, 0.8], [-0.25, 0, -0.3]);
+    const torso = addMesh(new THREE.CapsuleGeometry(0.28, 2.35, 6, 10), bodyMaterial, [0, 1.52, 0], [0.72, 1.18, 0.42]);
+    torso.name = "thin-vertical-torso";
+    const neck = addMesh(new THREE.CapsuleGeometry(0.18, 0.62, 5, 8), armorMaterial, [0, 2.88, 0.03], [0.58, 1, 0.38]);
+    neck.name = "long-armored-neck";
+    const head = addMesh(new THREE.IcosahedronGeometry(0.38, 1), bodyMaterial, [0, 3.42, 0.12], [0.72, 0.88, 1.22], [-0.1, 0, 0]);
+    head.name = "insectoid-birdlike-head";
+    const beak = addMesh(new THREE.ConeGeometry(0.13, 0.82, 7), armorMaterial, [0, 3.34, 0.78], [0.9, 1, 0.62], [Math.PI / 2, 0, 0]);
+    beak.name = "forward-beak";
+    addMesh(new THREE.SphereGeometry(0.095, 16, 10), glowMaterial, [-0.16, 3.48, 0.43], [1.25, 0.72, 0.55]);
+    addMesh(new THREE.SphereGeometry(0.095, 16, 10), glowMaterial, [0.16, 3.48, 0.43], [1.25, 0.72, 0.55]);
 
-    addMesh(new THREE.SphereGeometry(0.085, 16, 10), glowMaterial, [-0.19, 3.42, 0.47], [1.2, 0.75, 0.6]);
-    addMesh(new THREE.SphereGeometry(0.085, 16, 10), glowMaterial, [0.19, 3.42, 0.47], [1.2, 0.75, 0.6]);
-    addMesh(new THREE.TorusGeometry(0.34, 0.035, 8, 42), armorMaterial, [0, 3.27, 0.28], [1, 0.5, 0.35], [Math.PI / 2, 0, 0]);
+    taperedLimb("left-antenna", [[-0.08, 3.76, 0.08], [-0.34, 4.15, 0.16], [-0.52, 4.45, 0.08]], 0.035, 0.014, armorMaterial);
+    taperedLimb("right-antenna", [[0.08, 3.76, 0.08], [0.34, 4.15, 0.16], [0.52, 4.45, 0.08]], 0.035, 0.014, armorMaterial);
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 9; i++) {
       addMesh(
-        new THREE.ConeGeometry(0.1 - i * 0.006, 0.42, 5),
+        new THREE.TorusGeometry(0.23 - i * 0.008, 0.016, 6, 32),
         armorMaterial,
-        [0, 2.62 - i * 0.26, -0.48],
-        [1, 1, 0.65],
+        [0, 2.46 - i * 0.22, -0.01],
+        [1, 0.55, 0.58],
         [Math.PI / 2, 0, 0]
       );
     }
 
-    taperedLimb("left-arm", [[-0.44, 2.28, 0], [-1.15, 1.9, 0.12], [-1.65, 1.2, 0.18], [-1.92, 0.65, 0.1]], 0.13, 0.055, bodyMaterial);
-    taperedLimb("right-arm", [[0.44, 2.28, 0], [1.15, 1.9, 0.12], [1.65, 1.2, 0.18], [1.92, 0.65, 0.1]], 0.13, 0.055, bodyMaterial);
-    taperedLimb("left-leg", [[-0.25, 0.72, 0], [-0.62, 0.06, 0.08], [-0.92, -0.68, 0.15]], 0.16, 0.075, armorMaterial);
-    taperedLimb("right-leg", [[0.25, 0.72, 0], [0.62, 0.06, 0.08], [0.92, -0.68, 0.15]], 0.16, 0.075, armorMaterial);
+    taperedLimb("left-foreleg", [[-0.18, 2.55, 0.06], [-0.72, 2.05, 0.34], [-1.08, 1.28, 0.2], [-1.46, 0.62, 0.32]], 0.075, 0.026, appendageMaterial);
+    taperedLimb("right-foreleg", [[0.18, 2.55, 0.06], [0.72, 2.05, 0.34], [1.08, 1.28, 0.2], [1.46, 0.62, 0.32]], 0.075, 0.026, appendageMaterial);
+    taperedLimb("left-mid-limb", [[-0.2, 1.68, 0.02], [-0.88, 1.1, -0.1], [-1.22, 0.34, -0.16], [-1.62, -0.36, -0.05]], 0.085, 0.03, armorMaterial);
+    taperedLimb("right-mid-limb", [[0.2, 1.68, 0.02], [0.88, 1.1, -0.1], [1.22, 0.34, -0.16], [1.62, -0.36, -0.05]], 0.085, 0.03, armorMaterial);
+    taperedLimb("left-rear-limb", [[-0.16, 0.78, -0.03], [-0.56, 0.1, -0.18], [-0.74, -0.62, -0.28]], 0.095, 0.034, armorMaterial);
+    taperedLimb("right-rear-limb", [[0.16, 0.78, -0.03], [0.56, 0.1, -0.18], [0.74, -0.62, -0.28]], 0.095, 0.034, armorMaterial);
 
-    addMesh(new THREE.ConeGeometry(0.11, 0.42, 5), armorMaterial, [-1.98, 0.45, 0.1], [0.7, 1, 0.7], [-0.25, 0, 0.2]);
-    addMesh(new THREE.ConeGeometry(0.11, 0.42, 5), armorMaterial, [1.98, 0.45, 0.1], [0.7, 1, 0.7], [-0.25, 0, -0.2]);
+    addMesh(new THREE.ConeGeometry(0.07, 0.32, 5), armorMaterial, [-1.52, 0.48, 0.34], [0.62, 1, 0.62], [-0.12, 0, 0.46]);
+    addMesh(new THREE.ConeGeometry(0.07, 0.32, 5), armorMaterial, [1.52, 0.48, 0.34], [0.62, 1, 0.62], [-0.12, 0, -0.46]);
+    addMesh(new THREE.ConeGeometry(0.08, 0.38, 5), armorMaterial, [-1.66, -0.5, -0.04], [0.6, 1, 0.6], [-0.25, 0, 0.35]);
+    addMesh(new THREE.ConeGeometry(0.08, 0.38, 5), armorMaterial, [1.66, -0.5, -0.04], [0.6, 1, 0.6], [-0.25, 0, -0.35]);
 
     const wingShape = new THREE.Shape();
     wingShape.moveTo(0, 0);
-    wingShape.bezierCurveTo(0.95, 0.55, 1.55, 1.32, 1.78, 2.18);
-    wingShape.bezierCurveTo(1.15, 1.88, 0.48, 1.25, 0, 0);
-    const wingGeometry = new THREE.ShapeGeometry(wingShape, 24);
+    wingShape.bezierCurveTo(0.85, 0.58, 1.96, 1.54, 2.18, 2.82);
+    wingShape.bezierCurveTo(1.22, 2.55, 0.42, 1.2, 0, 0);
+    const wingGeometry = new THREE.ShapeGeometry(wingShape, 32);
 
-    const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
-    leftWing.position.set(-0.34, 1.74, -0.26);
-    leftWing.rotation.set(0.18, -0.65, 0.3);
-    leftWing.scale.set(-1.15, 1.18, 1);
-    leftWing.castShadow = true;
-    qu.add(leftWing);
+    const wings = [];
+    function addWing(side, yOffset, scale, rotationZ) {
+      const sideName = side < 0 ? "left" : "right";
+      const wing = new THREE.Mesh(wingGeometry, wingMaterial);
+      wing.name = `${sideName}-wing`;
+      wing.position.set(0.18 * side, yOffset, -0.22);
+      wing.rotation.set(0.24, 0.55 * side, rotationZ);
+      wing.scale.set(scale * side, scale, 1);
+      wing.castShadow = true;
+      qu.add(wing);
+      wings.push(wing);
 
-    const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
-    rightWing.position.set(0.34, 1.74, -0.26);
-    rightWing.rotation.set(0.18, 0.65, -0.3);
-    rightWing.scale.set(1.15, 1.18, 1);
-    rightWing.castShadow = true;
-    qu.add(rightWing);
+      for (let i = 0; i < 4; i++) {
+        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.014, 1.8 + i * 0.14, 5), glowMaterial);
+        vein.name = `${sideName}-wing-vein-${i + 1}`;
+        vein.position.set((0.46 + i * 0.22) * side, yOffset + 0.58 + i * 0.3, -0.17);
+        vein.rotation.set(1.18, 0.12 * side, (0.62 + i * 0.12) * side);
+        vein.scale.x = 0.42;
+        qu.add(vein);
+      }
+    }
 
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(1.02, 0.018, 8, 80), glowMaterial);
-    halo.position.set(0, 3.3, -0.18);
-    halo.rotation.set(Math.PI / 2, 0, 0);
-    qu.add(halo);
+    addWing(-1, 1.98, 1.22, 0.42);
+    addWing(1, 1.98, 1.22, -0.42);
+    addWing(-1, 1.22, 0.82, 0.24);
+    addWing(1, 1.22, 0.82, -0.24);
 
     const ground = new THREE.Mesh(
       new THREE.CircleGeometry(5.2, 72),
@@ -252,7 +274,9 @@
       const time = clock.getElapsedTime();
       qu.rotation.y = Math.sin(time * 0.34) * 0.12;
       qu.position.y = Math.sin(time * 1.4) * 0.035;
-      halo.rotation.z = time * 0.28;
+      wings.forEach((wing, index) => {
+        wing.rotation.z += Math.sin(time * 1.6 + index) * 0.0009;
+      });
       controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
