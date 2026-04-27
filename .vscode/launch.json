@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Part I Beta Menu",
+      "request": "launch",
+      "mainClass": "com.alltomorrows.menu.MainMenuApp",
+      "projectName": "Alltomorrows",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Build Part I Beta Jar"
+    },
+    {
+      "type": "java",
+      "name": "Smoke Test Part I Beta Menu",
+      "request": "launch",
+      "mainClass": "com.alltomorrows.menu.MainMenuApp",
+      "projectName": "Alltomorrows",
+      "cwd": "${workspaceFolder}",
+      "args": "--smoke-test",
+      "preLaunchTask": "Build Part I Beta Jar"
+    }
+  ]
+}
